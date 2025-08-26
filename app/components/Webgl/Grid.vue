@@ -3,10 +3,10 @@ import type { InstancedMesh } from 'three'
 import { useLoop, useTres } from '@tresjs/core'
 import { useMouse, useWindowSize } from '@vueuse/core'
 import {
+  AdditiveBlending,
   Color,
   DynamicDrawUsage,
   Matrix4,
-  MeshPhysicalMaterial,
   Quaternion,
   ShaderMaterial,
   SphereGeometry,
@@ -23,11 +23,16 @@ const { renderer } = useTres()
 const { width, height } = useWindowSize()
 const { x, y } = useMouse({ target: renderer.domElement })
 
+function falloff(dist: number, r: number) {
+  const x = dist / r
+  return Math.exp(-(x * x) * 2)
+}
+
 const gridProps = reactive({
   cols: 100,
   rows: 100,
   spacing: 60,
-  influenceRadius: 185,
+  influenceRadius: 185, // 520
 })
 
 const tmpMat = new Matrix4()
@@ -40,41 +45,32 @@ pane.addBinding(gridProps, 'spacing', { label: 'Spacing', min: 25, max: 100, ste
 
 const instancedMesh = shallowRef<InstancedMesh | null>(null)
 
-// const material = new MeshPhysicalMaterial({
-//   color: '#040404',
-//   // emissive: 0x8888FF,
-//   // emissiveIntensity: 2.5,
-//   roughness: 1,
-//   metalness: 1,
-//   // transmission: 0.5,
-//   // thickness: 0.5,
-//   // clearcoat: 1.0,
-//   // clearcoatRoughness: 0.1,
-//   name: 'SphereMaterial',
-//   sheen: 1,
-//   sheenColor: '#8888ff',
-//   sheenRoughness: 0.3,
-// })
-
 const uniforms = reactive({
-  uBaseColor: { value: new Color('#0777fd') },
-  uFresnelColor: { value: new Color('#02feff') },
+  uBaseColor: { value: new Color('#251D7A') },
+  uFresnelColor: { value: new Color('#D2C5FD') },
   uFresnelAmt: { value: 1.5 },
   uFresnelOffset: { value: 0.05 },
   uFresnelIntensity: { value: 1.5 },
   uFresnelAlpha: { value: 1 },
-  uAlpha: { value: true },
+  uFresnelDirection: { value: new Vector3(0.0, 1.0, 0.5) }, // <- bias vertical + léger Z
+  uAlpha: { value: false },
 })
 
 const params = reactive({
-  baseColor: '#0777fd',
-  fresnelColor: '#02feff',
+  baseColor: '#251D7A',
+  fresnelColor: '#D2C5FD',
 })
 
 const material = new ShaderMaterial({
   uniforms,
   vertexShader,
   fragmentShader,
+  transparent: true,
+  blending: AdditiveBlending,
+  depthWrite: false, // évite les soucis d’ordre de dessin
+  depthTest: true,
+  dithering: true,
+
 })
 
 pane.addBinding(params, 'baseColor', {
@@ -96,8 +92,11 @@ pane.addBinding(uniforms.uFresnelOffset, 'value', { label: 'Fresnel Offset', min
 pane.addBinding(uniforms.uFresnelIntensity, 'value', { label: 'Fresnel Intensity', min: 0, max: 5, step: 0.1 })
 pane.addBinding(uniforms.uFresnelAlpha, 'value', { label: 'Fresnel Alpha', min: 0, max: 1, step: 0.01 })
 pane.addBinding(uniforms.uAlpha, 'value', { label: 'Alpha' })
+pane.addBinding(uniforms.uFresnelDirection.value, 'x', { min: -1, max: 1, step: 0.01 })
+pane.addBinding(uniforms.uFresnelDirection.value, 'y', { min: -1, max: 1, step: 0.01 })
+pane.addBinding(uniforms.uFresnelDirection.value, 'z', { min: -1, max: 1, step: 0.01 })
 
-const geometry = new SphereGeometry(25, 16, 12)
+const geometry = new SphereGeometry(25, 64, 48)
 
 function hexPosition(x: number, y: number) {
   const stepX = gridProps.spacing
@@ -144,7 +143,7 @@ watchEffect(() => {
 
 const baseScale = 0.1
 const maxScale = 1.1
-const parallaxStrength = 0.5
+const parallaxStrength = 0.35
 
 const { onBeforeRender } = useLoop()
 
@@ -165,7 +164,7 @@ onBeforeRender(() => {
 
       const dist = Math.hypot(px, py)
 
-      const t = Math.max(0, 1 - dist / gridProps.influenceRadius)
+      const t = falloff(dist, gridProps.influenceRadius)
       const s = baseScale + (maxScale - baseScale) * t
       tmpScale.set(s, s, s)
 

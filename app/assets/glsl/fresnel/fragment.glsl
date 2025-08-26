@@ -16,7 +16,9 @@ float lambertLighting(vec3 normal, vec3 viewDirection) {
 }
 
 float fresnelFunc(float amount, float offset, vec3 normal, vec3 view) {
-    return offset + (1.0 - offset) * pow(1.0 - dot(normal, view), amount);
+    float fres = 1.0 - dot(normal, view);
+    fres = smoothstep(offset, offset + amount, fres);
+    return fres;
 }
 
 void main() {
@@ -29,8 +31,7 @@ void main() {
     vec3 finalColor = mix(diffuseColor, fresnelColor, fresnel * uFresnelAlpha);
 
     float alpha = uAlpha > 0.5 ? fresnel : 1.0;
+    vec3 color = uAlpha > 0.5 ? fresnelColor : finalColor;
 
-    gl_FragColor = uAlpha > 0.5 
-        ? vec4(fresnelColor, fresnel) 
-        : vec4(finalColor, 1.0);
+    gl_FragColor = vec4(color, alpha);
 }
