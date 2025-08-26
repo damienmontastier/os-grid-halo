@@ -41,14 +41,14 @@ pane.addBinding(gridProps, 'spacing', { label: 'Spacing', min: 25, max: 100, ste
 const instancedMesh = shallowRef<InstancedMesh | null>(null)
 
 // const material = new MeshPhysicalMaterial({
-//   color: '#040404', // Couleur principale
-//   // emissive: 0x8888FF, // Lumière qui "sort" de la sphère
-//   // emissiveIntensity: 2.5, // Intensité du glow
+//   color: '#040404',
+//   // emissive: 0x8888FF,
+//   // emissiveIntensity: 2.5,
 //   roughness: 1,
 //   metalness: 1,
-//   // transmission: 0.5, // Transparence type verre
-//   // thickness: 0.5, // Épaisseur optique
-//   // clearcoat: 1.0, // Couche brillante
+//   // transmission: 0.5,
+//   // thickness: 0.5,
+//   // clearcoat: 1.0,
 //   // clearcoatRoughness: 0.1,
 //   name: 'SphereMaterial',
 //   sheen: 1,
