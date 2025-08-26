@@ -13,13 +13,26 @@
   },
   "dependencies": {
     "@nuxt/eslint": "^1.9.0",
+    "@tresjs/cientos": "https://pkg.pr.new/@tresjs/cientos@640",
+    "@tresjs/core": "^5.0.0-next.6",
+    "@tresjs/nuxt": "4.1.0-next.1",
+    "@tresjs/post-processing": "^3.0.0-next.0",
     "nuxt": "^4.0.3",
+    "tempus": "^1.0.0-dev.12",
+    "three": "^0.179.1",
+    "tweakpane": "^4.0.5",
     "vue": "^3.5.19",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.2.1",
+    "@tweakpane/core": "^2.0.5",
+    "@tweakpane/plugin-essentials": "^0.2.1",
+    "@vueuse/core": "^13.7.0",
+    "@vueuse/nuxt": "^13.7.0",
     "eslint": "^9.34.0",
-    "eslint-plugin-format": "^1.0.1"
+    "eslint-plugin-format": "^1.0.1",
+    "sass": "^1.90.0",
+    "vite-plugin-glsl": "^1.5.1"
   }
 }
