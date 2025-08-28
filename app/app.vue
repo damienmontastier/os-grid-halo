@@ -1,5 +1,10 @@
 <script setup lang="ts">
-
+useHead({
+  title: 'HALO GRID',
+  meta: [
+    { name: 'description', content: 'An experimental interactive halo grid with fresnel glow.' },
+  ],
+})
 </script>
 
 <template>
