@@ -35,7 +35,7 @@ const gridProps = reactive({
   influenceRadius: 200,
   baseScale: 0.0,
   maxScale: 1.1,
-  parallaxStrength: 0.45,
+  parallaxStrength: 0.6,
 })
 
 const tmpMat = new Matrix4()

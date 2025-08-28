@@ -9,6 +9,7 @@ export function setupGridPane(props, uniforms, colors, material) {
 
   paneGrid.addBinding(props, 'spacing', { label: 'Spacing', min: 25, max: 100, step: 1 })
   paneGrid.addBinding(props, 'influenceRadius', { label: 'Influence Radius', min: 50, max: 800, step: 1 })
+  paneGrid.addBinding(props, 'parallaxStrength', { label: 'Parallax Strength', min: 0, max: 2, step: 0.01 })
 
   const fCols = paneGrid.addFolder({ title: '🎨 Colors', expanded: false })
   const fRim = paneGrid.addFolder({ title: '🌈 Fresnel', expanded: false })
