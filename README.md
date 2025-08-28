@@ -1,4 +1,4 @@
-![Banner](./public/readme-banner.png)
+![Banner](./public/readme-banner.webp)
 
 An experimental grid-based halo effect built with the [TresJS](https://tresjs.org/) ecosystem. <br> <br>
 👉 [Live Demo](https://os-grid-halo.netlify.app/)
