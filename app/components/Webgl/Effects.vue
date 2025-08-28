@@ -39,7 +39,7 @@ setupEffectsPane(POSTPROCESSING_PARAMS)
 
       <FishEyePmndrs v-bind="POSTPROCESSING_PARAMS.fishEye" />
 
-      <BarrelBlurPmndrs v-bind="POSTPROCESSING_PARAMS.barrelBlur" />
+      <BarrelBlurPmndrs :amount="POSTPROCESSING_PARAMS.barrelBlur.amount" :offset="[POSTPROCESSING_PARAMS.barrelBlur.offsetX, POSTPROCESSING_PARAMS.barrelBlur.offsetY]" />
 
       <ToneMappingPmndrs :mode="POSTPROCESSING_PARAMS.toneMapping.mode" />
     </EffectComposerPmndrs>
