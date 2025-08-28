@@ -29,8 +29,8 @@ function falloff(dist: number, r: number) {
 }
 
 const gridProps = reactive({
-  cols: 30,
-  rows: 30,
+  cols: 35,
+  rows: 35,
   spacing: 60,
   influenceRadius: 200,
   baseScale: 0.0,
@@ -98,7 +98,7 @@ material.name = 'Material'
 
 setupGridPane(gridProps, uniforms, paramsColors, material)
 
-const geometry = new SphereGeometry(25, 64, 48)
+const geometry = new SphereGeometry(25, 32, 16)
 
 function hexPosition(x: number, y: number) {
   const stepX = gridProps.spacing
