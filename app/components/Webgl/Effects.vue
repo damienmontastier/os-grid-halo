@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { BarrelBlurPmndrs, BloomPmndrs, EffectComposerPmndrs, FishEyePmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize, ToneMappingMode } from 'postprocessing'
-import { Vector2 } from 'three'
 
 const POSTPROCESSING_PARAMS = reactive({
   toneMapping: {
-    exposure: 1.65,
     mode: ToneMappingMode.ACES_FILMIC,
   },
   bloom: {
@@ -26,11 +24,7 @@ const pane = usePaneFolder($pane, {
 })
 
 const toneMappingPane = usePaneFolder(pane, { title: '🎨 Tone Mapping', expanded: false })
-toneMappingPane.addBinding(POSTPROCESSING_PARAMS.toneMapping, 'exposure', {
-  min: 0,
-  max: 10,
-  step: 0.1,
-})
+
 toneMappingPane.addBinding(POSTPROCESSING_PARAMS.toneMapping, 'mode', {
   options: Object.keys(ToneMappingMode).map(key => ({
     text: key,

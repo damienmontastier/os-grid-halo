@@ -16,9 +16,8 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { shallowRef, watchEffect } from 'vue'
 import fragmentShader from '~/assets/glsl/fresnel/fragment.glsl'
 import vertexShader from '~/assets/glsl/fresnel/vertex.glsl'
+import { setupGridPane } from '~/panes/setupGridPane'
 
-const { $pane } = useNuxtApp()
-const pane = usePaneFolder($pane, { title: '🔲 Grid', expanded: true })
 const { renderer } = useTres()
 
 const { width, height } = useWindowSize()
@@ -33,7 +32,7 @@ const gridProps = reactive({
   cols: 30,
   rows: 30,
   spacing: 60,
-  influenceRadius: 250, // 520
+  influenceRadius: 250,
   baseScale: 0.0,
   maxScale: 1.1,
   parallaxStrength: 0.45,
@@ -44,9 +43,6 @@ const tmpPos = new Vector3()
 
 const tmpScale = new Vector3(1, 1, 1)
 const tmpQuat = new Quaternion()
-
-pane.addBinding(gridProps, 'spacing', { label: 'Spacing', min: 25, max: 100, step: 1 })
-pane.addBinding(gridProps, 'influenceRadius', { label: 'Influence Radius', min: 50, max: 800, step: 1 })
 
 const instancedMesh = shallowRef<InstancedMesh | null>(null)
 
@@ -68,7 +64,7 @@ const uniforms = reactive({
   uNoiseStrength: { value: 0.185 },
 })
 
-const params = reactive({
+const paramsColors = reactive({
   baseColor: uBaseColor,
   fresnelColor: uFresnelColor,
 })
@@ -94,47 +90,11 @@ const material = new CustomShaderMaterial({
   depthTest: true,
   depthWrite: false,
   premultipliedAlpha: true,
-  emissive: new Color('#24207a'), // 7E72D7
+  emissive: new Color('#24207a'),
   emissiveIntensity: 5,
 })
 
-usePaneMaterials(material, {}, pane)
-
-// --- Folders
-const fCols = pane.addFolder({ title: '🎨 Colors', expanded: true })
-const fRim = pane.addFolder({ title: '🌈 Fresnel', expanded: true })
-const fEll = pane.addFolder({ title: '🥚 Ellipse (amande)', expanded: true })
-const fNoise = pane.addFolder({ title: '🌀 Noise', expanded: true })
-
-// ========== Colors
-fCols.addBinding(params, 'baseColor', { label: 'Base', view: 'color' })
-  .on('change', (ev) => {
-    const hex = Number.parseInt(ev.value.replace('#', '0x'), 16)
-    uniforms.uBaseColor.value.setHex(hex) // <- passe aussi au shader
-  })
-fCols.addBinding(params, 'fresnelColor', { label: 'Fresnel', view: 'color' })
-  .on('change', (ev) => {
-    const hex = Number.parseInt(ev.value.replace('#', '0x'), 16)
-    uniforms.uFresnelColor.value.setHex(hex)
-  })
-
-// ========== Fresnel (simple)
-fRim.addBinding(uniforms.uFresnelOffset, 'value', { label: 'Offset', min: -0.5, max: 0.5, step: 0.001 })
-fRim.addBinding(uniforms.uFresnelAmt, 'value', { label: 'Amount', min: 0, max: 5.0, step: 0.01 })
-fRim.addBinding(uniforms.uFresnelIntensity, 'value', { label: 'Intensity', min: 0, max: 4.0, step: 0.01 })
-
-// ========== Ellipse (amande) — orientation & force
-;['x', 'y', 'z'].forEach((k) => {
-  fEll.addBinding(uniforms.uRimBiasDir.value, k as 'x' | 'y' | 'z', { label: `Bias ${k.toUpperCase()}`, min: -1, max: 1, step: 0.01 })
-    .on('change', () => uniforms.uRimBiasDir.value.normalize())
-})
-
-fEll.addBinding(uniforms.uEllipseMajor, 'value', { label: 'Major (thin)', min: 0.2, max: 1.0, step: 0.01 })
-fEll.addBinding(uniforms.uEllipseMinor, 'value', { label: 'Minor (thick)', min: 1.0, max: 2.0, step: 0.01 })
-
-// ========== Noise (collé à l’objet)
-fNoise.addBinding(uniforms.uNoiseScale, 'value', { label: 'Scale', min: 0.01, max: 0.5, step: 0.005 })
-fNoise.addBinding(uniforms.uNoiseStrength, 'value', { label: 'Strength', min: 0.00, max: 0.5, step: 0.005 })
+setupGridPane(gridProps, uniforms, paramsColors, material)
 
 const geometry = new SphereGeometry(25, 64, 48)
 

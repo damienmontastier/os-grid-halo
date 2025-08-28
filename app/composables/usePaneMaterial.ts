@@ -36,11 +36,6 @@ type DefaultParams = Partial<{
 type MaterialsDefaultsMap = Record<string, DefaultParams>
 
 export async function usePaneMaterials(materials: Material[] | Material, defaultsPerMaterial?: MaterialsDefaultsMap, parentFolder?: any) {
-  // const config = useRuntimeConfig()
-
-  // if (config.public.IS_FTP)
-  //   return
-
   await nextTick()
 
   const { $pane } = useNuxtApp()

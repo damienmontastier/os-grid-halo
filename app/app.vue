@@ -1,12 +1,5 @@
 <script setup lang="ts">
-// const appStore = useAppStore()
-// const { fontsLoaded } = toRefs(appStore)
 
-// useHead({
-//   htmlAttrs: {
-//     class: import.meta.env.DEV ? `dev` : ``,
-//   },
-// })
 </script>
 
 <template>
