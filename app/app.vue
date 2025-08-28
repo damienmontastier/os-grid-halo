@@ -1,8 +1,8 @@
 <script setup lang="ts">
 useHead({
-  title: 'HALO GRID',
+  title: 'GRID HALO',
   meta: [
-    { name: 'description', content: 'An experimental interactive halo grid with fresnel glow.' },
+    { name: 'description', content: 'An experimental interactive grid halo with fresnel glow.' },
   ],
 })
 </script>
