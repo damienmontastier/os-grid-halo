@@ -32,7 +32,7 @@ const gridProps = reactive({
   cols: 30,
   rows: 30,
   spacing: 60,
-  influenceRadius: 250,
+  influenceRadius: 200,
   baseScale: 0.0,
   maxScale: 1.1,
   parallaxStrength: 0.45,
@@ -91,8 +91,10 @@ const material = new CustomShaderMaterial({
   depthWrite: false,
   premultipliedAlpha: true,
   emissive: new Color('#24207a'),
-  emissiveIntensity: 5,
+  emissiveIntensity: 8.5,
 })
+
+material.name = 'Material'
 
 setupGridPane(gridProps, uniforms, paramsColors, material)
 

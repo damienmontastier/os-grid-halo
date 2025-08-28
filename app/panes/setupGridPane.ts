@@ -12,7 +12,7 @@ export function setupGridPane(props, uniforms, colors, material) {
 
   const fCols = paneGrid.addFolder({ title: '🎨 Colors', expanded: false })
   const fRim = paneGrid.addFolder({ title: '🌈 Fresnel', expanded: false })
-  const fEll = paneGrid.addFolder({ title: '🥚 Ellipse (amande)', expanded: false })
+  const fEll = paneGrid.addFolder({ title: '🥚 Ellipse', expanded: false })
   const fNoise = paneGrid.addFolder({ title: '🌀 Noise', expanded: false })
 
   fCols.addBinding(colors, 'baseColor', { label: 'Base', view: 'color' })

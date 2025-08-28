@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { BarrelBlurPmndrs, BloomPmndrs, EffectComposerPmndrs, FishEyePmndrs } from '@tresjs/post-processing'
 import { BlendFunction, KernelSize, ToneMappingMode } from 'postprocessing'
+import { setupEffectsPane } from '~/panes/setupEffectsPane'
 
 const POSTPROCESSING_PARAMS = reactive({
   toneMapping: {
@@ -10,86 +11,35 @@ const POSTPROCESSING_PARAMS = reactive({
     intensity: 2.5,
     mipmapBlur: true,
     blendFunction: BlendFunction.SCREEN,
-    threshold: 0.25,
-    smoothing: 0.45,
+    luminanceThreshold: 0.25,
+    luminanceSmoothing: 0.45,
     kernelSize: KernelSize.MEDIUM,
+  },
+  fishEye: {
+    lensS: [0.95, 0.95],
+    lensF: [0.2, 1],
+    scale: 0.85,
+  },
+  barrelBlur: {
+    amount: 0.002,
+    offsetX: 0.5,
+    offsetY: 0.5,
   },
 })
 
-const { $pane } = useNuxtApp()
-
-const pane = usePaneFolder($pane, {
-  title: '🗺️ Effects',
-  expanded: true,
-})
-
-const toneMappingPane = usePaneFolder(pane, { title: '🎨 Tone Mapping', expanded: false })
-
-toneMappingPane.addBinding(POSTPROCESSING_PARAMS.toneMapping, 'mode', {
-  options: Object.keys(ToneMappingMode).map(key => ({
-    text: key,
-    value: ToneMappingMode[key as keyof typeof ToneMappingMode],
-  })),
-})
-
-const bloomPane = usePaneFolder(pane, { title: '🌟 Bloom', expanded: false })
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'intensity', {
-  min: 0,
-  max: 10,
-  step: 0.1,
-})
-
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'mipmapBlur')
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'blendFunction', {
-  options: Object.keys(BlendFunction).map(key => ({
-    text: key,
-    value: BlendFunction[key as keyof typeof BlendFunction],
-  })),
-})
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'kernelSize', {
-  options: Object.keys(KernelSize).map(key => ({
-    text: key,
-    value: KernelSize[key as keyof typeof KernelSize],
-  })),
-})
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'threshold', {
-  min: 0,
-  max: 1,
-  step: 0.01,
-})
-bloomPane.addBinding(POSTPROCESSING_PARAMS.bloom, 'smoothing', {
-  min: 0,
-  max: 1,
-  step: 0.001,
-})
-
-const fishEyeProps = {
-  lensS: [1, 1],
-  lensF: [0, 1],
-  scale: 1,
-}
-
-const barrelBlurProps = {
-  amount: 0.01,
-  offset: [0.5, 0.5],
-}
+setupEffectsPane(POSTPROCESSING_PARAMS)
 </script>
 
 <template>
   <Suspense>
     <EffectComposerPmndrs :multisampling="4">
       <BloomPmndrs
-        :intensity="POSTPROCESSING_PARAMS.bloom.intensity"
-        :blend-function="POSTPROCESSING_PARAMS.bloom.blendFunction"
-        :mipmap-blur="POSTPROCESSING_PARAMS.bloom.mipmapBlur"
-        :luminance-threshold="POSTPROCESSING_PARAMS.bloom.threshold"
-        :luminance-smoothing="POSTPROCESSING_PARAMS.bloom.smoothing"
-        :kernel-size="POSTPROCESSING_PARAMS.bloom.kernelSize"
+        v-bind="POSTPROCESSING_PARAMS.bloom"
       />
 
-      <!-- <FishEyePmndrs v-bind="fishEyeProps" /> -->
+      <FishEyePmndrs v-bind="POSTPROCESSING_PARAMS.fishEye" />
 
-      <!-- <BarrelBlurPmndrs v-bind="barrelBlurProps" /> -->
+      <BarrelBlurPmndrs v-bind="POSTPROCESSING_PARAMS.barrelBlur" />
 
       <ToneMappingPmndrs :mode="POSTPROCESSING_PARAMS.toneMapping.mode" />
     </EffectComposerPmndrs>
