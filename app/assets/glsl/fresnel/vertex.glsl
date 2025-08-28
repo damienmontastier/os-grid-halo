@@ -1,15 +1,17 @@
-varying vec2 vUv;
-
-out vec3 vView;
-out vec3 vNormal;
+varying vec3 vWorldPos, vWorldNormal, vViewDir, vObjPos;
 
 void main() {
-    mat4 worldMat = modelMatrix * instanceMatrix;
-    vec4 worldPosition = worldMat * vec4(position, 1.0);
+  #ifdef USE_INSTANCING
+    mat4 IM = instanceMatrix;
+  #else
+    mat4 IM = mat4(1.0);
+  #endif
 
-    vNormal = normalize(mat3(worldMat) * normal);
+  mat4 M  = modelMatrix * IM;
+  vec4 wp = M * vec4(position, 1.0);
 
-    vView = normalize(cameraPosition - worldPosition.xyz);
-
-    gl_Position = projectionMatrix * viewMatrix * worldPosition;
+  vObjPos      = position;                 // espace OBJET (stable)
+  vWorldPos    = wp.xyz;
+  vWorldNormal = normalize(mat3(M) * normal);
+  vViewDir     = normalize(cameraPosition - vWorldPos);
 }

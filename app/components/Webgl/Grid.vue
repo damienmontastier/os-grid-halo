@@ -2,16 +2,17 @@
 import type { InstancedMesh } from 'three'
 import { useLoop, useTres } from '@tresjs/core'
 import { useMouse, useWindowSize } from '@vueuse/core'
+import gsap from 'gsap'
 import {
-  AdditiveBlending,
   Color,
   DynamicDrawUsage,
   Matrix4,
+  MeshStandardMaterial,
   Quaternion,
-  ShaderMaterial,
   SphereGeometry,
   Vector3,
 } from 'three'
+import CustomShaderMaterial from 'three-custom-shader-material/vanilla'
 import { shallowRef, watchEffect } from 'vue'
 import fragmentShader from '~/assets/glsl/fresnel/fragment.glsl'
 import vertexShader from '~/assets/glsl/fresnel/vertex.glsl'
@@ -29,10 +30,13 @@ function falloff(dist: number, r: number) {
 }
 
 const gridProps = reactive({
-  cols: 100,
-  rows: 100,
+  cols: 30,
+  rows: 30,
   spacing: 60,
-  influenceRadius: 185, // 520
+  influenceRadius: 250, // 520
+  baseScale: 0.0,
+  maxScale: 1.1,
+  parallaxStrength: 0.45,
 })
 
 const tmpMat = new Matrix4()
@@ -42,59 +46,95 @@ const tmpScale = new Vector3(1, 1, 1)
 const tmpQuat = new Quaternion()
 
 pane.addBinding(gridProps, 'spacing', { label: 'Spacing', min: 25, max: 100, step: 1 })
+pane.addBinding(gridProps, 'influenceRadius', { label: 'Influence Radius', min: 50, max: 800, step: 1 })
 
 const instancedMesh = shallowRef<InstancedMesh | null>(null)
 
+const uBaseColor = '#3A36C8'
+const uFresnelColor = '#b9b0fb'
+
 const uniforms = reactive({
-  uBaseColor: { value: new Color('#251D7A') },
-  uFresnelColor: { value: new Color('#D2C5FD') },
-  uFresnelAmt: { value: 1.5 },
-  uFresnelOffset: { value: 0.05 },
-  uFresnelIntensity: { value: 1.5 },
-  uFresnelAlpha: { value: 1 },
-  uFresnelDirection: { value: new Vector3(0.0, 1.0, 0.5) }, // <- bias vertical + léger Z
-  uAlpha: { value: false },
+  uBaseColor: { value: new Color(uBaseColor) },
+  uFresnelColor: { value: new Color(uFresnelColor) },
+  uFresnelAmt: { value: 1.20 },
+  uFresnelOffset: { value: -0.150 },
+  uFresnelIntensity: { value: 0.75 },
+
+  uRimBiasDir: { value: new Vector3(0.05, -0.40, -0.95) },
+  uEllipseMajor: { value: 0.80 },
+  uEllipseMinor: { value: 1.75 },
+
+  uNoiseScale: { value: 0.100 },
+  uNoiseStrength: { value: 0.185 },
 })
 
 const params = reactive({
-  baseColor: '#251D7A',
-  fresnelColor: '#D2C5FD',
+  baseColor: uBaseColor,
+  fresnelColor: uFresnelColor,
 })
 
-const material = new ShaderMaterial({
+const quickToState = { offsetX: 0, offsetY: 0 }
+
+function makeQuick(prop: 'offsetX' | 'offsetY') {
+  return gsap.quickTo(quickToState, prop, {
+    duration: 0.5,
+    ease: 'power3.out',
+  })
+}
+
+const quickOffsetX = makeQuick('offsetX')
+const quickOffsetY = makeQuick('offsetY')
+
+const material = new CustomShaderMaterial({
+  baseMaterial: MeshStandardMaterial,
   uniforms,
   vertexShader,
   fragmentShader,
   transparent: true,
-  blending: AdditiveBlending,
-  depthWrite: false, // évite les soucis d’ordre de dessin
   depthTest: true,
-  dithering: true,
-
+  depthWrite: false,
+  premultipliedAlpha: true,
+  emissive: new Color('#24207a'), // 7E72D7
+  emissiveIntensity: 5,
 })
 
-pane.addBinding(params, 'baseColor', {
-  label: 'Base Color',
-}).on('change', (ev) => {
-  const hexNumber = Number.parseInt(ev.value.replace('#', '0x'), 16)
-  uniforms.uBaseColor.value.setHex(hexNumber)
+usePaneMaterials(material, {}, pane)
+
+// --- Folders
+const fCols = pane.addFolder({ title: '🎨 Colors', expanded: true })
+const fRim = pane.addFolder({ title: '🌈 Fresnel', expanded: true })
+const fEll = pane.addFolder({ title: '🥚 Ellipse (amande)', expanded: true })
+const fNoise = pane.addFolder({ title: '🌀 Noise', expanded: true })
+
+// ========== Colors
+fCols.addBinding(params, 'baseColor', { label: 'Base', view: 'color' })
+  .on('change', (ev) => {
+    const hex = Number.parseInt(ev.value.replace('#', '0x'), 16)
+    uniforms.uBaseColor.value.setHex(hex) // <- passe aussi au shader
+  })
+fCols.addBinding(params, 'fresnelColor', { label: 'Fresnel', view: 'color' })
+  .on('change', (ev) => {
+    const hex = Number.parseInt(ev.value.replace('#', '0x'), 16)
+    uniforms.uFresnelColor.value.setHex(hex)
+  })
+
+// ========== Fresnel (simple)
+fRim.addBinding(uniforms.uFresnelOffset, 'value', { label: 'Offset', min: -0.5, max: 0.5, step: 0.001 })
+fRim.addBinding(uniforms.uFresnelAmt, 'value', { label: 'Amount', min: 0, max: 5.0, step: 0.01 })
+fRim.addBinding(uniforms.uFresnelIntensity, 'value', { label: 'Intensity', min: 0, max: 4.0, step: 0.01 })
+
+// ========== Ellipse (amande) — orientation & force
+;['x', 'y', 'z'].forEach((k) => {
+  fEll.addBinding(uniforms.uRimBiasDir.value, k as 'x' | 'y' | 'z', { label: `Bias ${k.toUpperCase()}`, min: -1, max: 1, step: 0.01 })
+    .on('change', () => uniforms.uRimBiasDir.value.normalize())
 })
 
-pane.addBinding(params, 'fresnelColor', {
-  label: 'Fresnel Color',
-}).on('change', (ev) => {
-  const hexNumber = Number.parseInt(ev.value.replace('#', '0x'), 16)
-  uniforms.uFresnelColor.value.setHex(hexNumber)
-})
+fEll.addBinding(uniforms.uEllipseMajor, 'value', { label: 'Major (thin)', min: 0.2, max: 1.0, step: 0.01 })
+fEll.addBinding(uniforms.uEllipseMinor, 'value', { label: 'Minor (thick)', min: 1.0, max: 2.0, step: 0.01 })
 
-pane.addBinding(uniforms.uFresnelAmt, 'value', { label: 'Fresnel Amount', min: 0, max: 5, step: 0.1 })
-pane.addBinding(uniforms.uFresnelOffset, 'value', { label: 'Fresnel Offset', min: 0, max: 1, step: 0.01 })
-pane.addBinding(uniforms.uFresnelIntensity, 'value', { label: 'Fresnel Intensity', min: 0, max: 5, step: 0.1 })
-pane.addBinding(uniforms.uFresnelAlpha, 'value', { label: 'Fresnel Alpha', min: 0, max: 1, step: 0.01 })
-pane.addBinding(uniforms.uAlpha, 'value', { label: 'Alpha' })
-pane.addBinding(uniforms.uFresnelDirection.value, 'x', { min: -1, max: 1, step: 0.01 })
-pane.addBinding(uniforms.uFresnelDirection.value, 'y', { min: -1, max: 1, step: 0.01 })
-pane.addBinding(uniforms.uFresnelDirection.value, 'z', { min: -1, max: 1, step: 0.01 })
+// ========== Noise (collé à l’objet)
+fNoise.addBinding(uniforms.uNoiseScale, 'value', { label: 'Scale', min: 0.01, max: 0.5, step: 0.005 })
+fNoise.addBinding(uniforms.uNoiseStrength, 'value', { label: 'Strength', min: 0.00, max: 0.5, step: 0.005 })
 
 const geometry = new SphereGeometry(25, 64, 48)
 
@@ -130,6 +170,11 @@ const cursorY = computed(() => -(y.value / height.value * 2 - 1))
 const mouseX = computed(() => (cursorX.value * width.value) / 2)
 const mouseY = computed(() => (cursorY.value * height.value) / 2)
 
+watch([mouseX, mouseY], () => {
+  quickOffsetX(-mouseX.value * gridProps.parallaxStrength)
+  quickOffsetY(-mouseY.value * gridProps.parallaxStrength)
+})
+
 watch(instancedMesh, () => {
   if (!instancedMesh.value)
     return
@@ -141,31 +186,25 @@ watchEffect(() => {
   updateInstances()
 })
 
-const baseScale = 0.1
-const maxScale = 1.1
-const parallaxStrength = 0.35
-
 const { onBeforeRender } = useLoop()
 
 onBeforeRender(() => {
   const mesh = instancedMesh.value
   if (!mesh)
     return
-  const offsetX = -mouseX.value * parallaxStrength
-  const offsetY = -mouseY.value * parallaxStrength
 
   let i = 0
   for (let yy = 0; yy < gridProps.rows; yy++) {
     for (let xx = 0; xx < gridProps.cols; xx++) {
       const p = hexPosition(xx, yy)
 
-      const px = p.x + offsetX
-      const py = p.y + offsetY
+      const px = p.x + quickToState.offsetX
+      const py = p.y + quickToState.offsetY
 
       const dist = Math.hypot(px, py)
 
       const t = falloff(dist, gridProps.influenceRadius)
-      const s = baseScale + (maxScale - baseScale) * t
+      const s = gridProps.baseScale + (gridProps.maxScale - gridProps.baseScale) * t
       tmpScale.set(s, s, s)
 
       tmpPos.set(px, py, 0)

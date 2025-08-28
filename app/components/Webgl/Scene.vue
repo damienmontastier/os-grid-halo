@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { Environment } from '@tresjs/cientos'
 import { vLightHelper } from '@tresjs/core'
-import { BloomPmndrs, EffectComposerPmndrs, GlitchPmndrs } from '@tresjs/post-processing'
 import { NoToneMapping, SRGBColorSpace } from 'three'
 
 const gl = {
   shadows: true,
-  clearColor: '#040404',
+  clearColor: '#070707',
   alpha: true,
   clearAlpha: 1,
   antialias: true,
@@ -71,23 +70,13 @@ onMounted(() => {
 
     <WebglGrid />
 
-    <!-- <WebglEnvironment /> -->
-
-    <!-- <WebglEffects /> -->
-
-    <!-- <WebglSceneWrapper /> -->
-
-    <!-- <Suspense>
-      <Environment preset="shangai" :environment-intensity="2" />
-    </Suspense> -->
+    <Suspense>
+      <Environment preset="dawn" :environment-intensity="2" />
+    </Suspense>
 
     <!-- <TresDirectionalLight :scale="100" color="white" :intensity="5" :position="[100, -50, 500]" /> -->
 
-    <Suspense>
-      <EffectComposerPmndrs>
-        <BloomPmndrs />
-      </EffectComposerPmndrs>
-    </Suspense>
+    <WebglEffects />
   </TresCanvas>
 </template>
 
