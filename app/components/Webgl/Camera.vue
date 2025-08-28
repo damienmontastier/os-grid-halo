@@ -17,13 +17,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <!-- <TresPerspectiveCamera
-    ref="cameraRef"
-    :near="0.1"
-    :far="100"
-    :fov="50"
-  /> -->
-
   <TresOrthographicCamera :args="[width / -2, width / 2, height / 2, height / -2, 1, 1000]" :zoom="1" :position="[0, 0, 500]" />
 
   <!-- <OrbitControls

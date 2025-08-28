@@ -18,7 +18,7 @@ const POSTPROCESSING_PARAMS = reactive({
   fishEye: {
     lensS: [0.95, 0.95],
     lensF: [0.2, 1],
-    scale: 0.85,
+    scale: 0.95,
   },
   barrelBlur: {
     amount: 0.002,

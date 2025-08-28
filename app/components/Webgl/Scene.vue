@@ -32,7 +32,7 @@ const glReactive = reactive({
       <Environment preset="dawn" :environment-intensity="2" />
     </Suspense>
 
-    <!-- <TresDirectionalLight :scale="100" color="white" :intensity="5" :position="[100, -50, 500]" /> -->
+    <!-- <TresDirectionalLight color="#b9b0fb" :intensity="2" :position="[100, -50, 100]" /> -->
 
     <WebglEffects />
   </TresCanvas>
